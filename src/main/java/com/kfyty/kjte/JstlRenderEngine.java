@@ -97,6 +97,10 @@ public class JstlRenderEngine {
         }
     }
 
+    public ResponseFacade getResponseFacade() {
+        return this.responseFacade;
+    }
+
     public void doRenderHtml() {
         this.doRenderHtml(config.getSavePath());
     }

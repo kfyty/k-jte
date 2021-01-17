@@ -6,6 +6,7 @@ import org.apache.catalina.connector.RequestFacade;
 import org.apache.catalina.session.StandardManager;
 import org.apache.catalina.session.StandardSession;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpSession;
 
 public class JteRequestFacade extends RequestFacade {
@@ -18,6 +19,11 @@ public class JteRequestFacade extends RequestFacade {
     }
 
     @Override
+    public String getServletPath() {
+        return config.getTemplatePath();
+    }
+
+    @Override
     public HttpSession getSession() {
         return session;
     }
@@ -25,5 +31,10 @@ public class JteRequestFacade extends RequestFacade {
     @Override
     public Object getAttribute(String name) {
         return config.getVariables().get(name);
+    }
+
+    @Override
+    public RequestDispatcher getRequestDispatcher(String path) {
+        return new JteRequestDispatcher(path, config);
     }
 }

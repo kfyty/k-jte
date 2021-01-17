@@ -15,6 +15,8 @@ import org.apache.jasper.servlet.JspCServletContext;
 import org.apache.jasper.servlet.JspServlet;
 import org.apache.jasper.servlet.JspServletWrapper;
 import org.apache.jasper.servlet.TldScanner;
+import org.apache.tomcat.util.descriptor.tld.TaglibXml;
+import org.apache.tomcat.util.descriptor.tld.TldResourcePath;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -24,10 +26,14 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class JstlTemplateEngine {
     public static final String DEFAULT_OUT_PUT_TEMP_DIR = System.getProperty("java.io.tmpdir");
+
+    private static Map<String, TldResourcePath> tldResourcePathMap;
+    private static Map<TldResourcePath, TaglibXml> tldResourcePathTaglibXmlMap;
 
     private File curJsp;
     private JspCompilationContext compilationContext;
@@ -60,10 +66,14 @@ public class JstlTemplateEngine {
             jspServlet.init(servletConfig);
 
             // 初始化 options，并初始化 jstl 标签数据
-            TldScanner tldScanner = new TldScanner(servletContext, true, false, true);
-            tldScanner.setClassLoader(this.getClass().getClassLoader());
-            tldScanner.scan();
-            TldCache tldCache = new TldCache(servletContext, tldScanner.getUriTldResourcePathMap(), tldScanner.getTldResourcePathTaglibXmlMap());
+            if(tldResourcePathMap == null || tldResourcePathTaglibXmlMap == null) {
+                TldScanner tldScanner = new TldScanner(servletContext, true, false, true);
+                tldScanner.setClassLoader(this.getClass().getClassLoader());
+                tldScanner.scan();
+                tldResourcePathMap = tldScanner.getUriTldResourcePathMap();
+                tldResourcePathTaglibXmlMap = tldScanner.getTldResourcePathTaglibXmlMap();
+            }
+            TldCache tldCache = new TldCache(servletContext, tldResourcePathMap, tldResourcePathTaglibXmlMap);
             EmbeddedServletOptions options = new EmbeddedServletOptions(jspServlet, servletContext);
             options.setTldCache(tldCache);
 
@@ -111,7 +121,7 @@ public class JstlTemplateEngine {
             tempOutPutDir = tempOutPutDir + File.separator;
         }
         if(!templatePath.startsWith(File.separator)) {
-            templatePath = File.separator +(templatePath.startsWith("/") ? templatePath.substring(1) : templatePath);
+            templatePath = File.separator + (templatePath.startsWith("/") ? templatePath.substring(1) : templatePath);
         }
         if(!templatePath.endsWith(File.separator)) {
             templatePath = templatePath + File.separator;

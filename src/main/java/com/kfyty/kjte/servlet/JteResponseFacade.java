@@ -29,10 +29,14 @@ public class JteResponseFacade extends ResponseFacade {
         return printWriter;
     }
 
+    public StringWriter getStringWriter() {
+        return this.stringWriter;
+    }
+
     public void saveHtml() throws IOException {
         File file = new File(config.getSavePath(), jspName);
         try(BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file))) {
-            out.write(this.stringWriter.toString().getBytes(StandardCharsets.UTF_8));
+            out.write(this.getStringWriter().toString().getBytes(StandardCharsets.UTF_8));
             out.flush();
         }
     }

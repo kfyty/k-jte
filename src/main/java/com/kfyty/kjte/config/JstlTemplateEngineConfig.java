@@ -35,6 +35,13 @@ public class JstlTemplateEngineConfig {
         this.initJspPaths();
     }
 
+    public JstlTemplateEngineConfig addJsp(File jsp) {
+        if(jsp != null && jsp.exists() && jsp.isFile()) {
+            this.jspFiles.add(jsp);
+        }
+        return this;
+    }
+
     public JstlTemplateEngineConfig putVar(String key, Object value) {
         this.variables.put(key, value);
         return this;
