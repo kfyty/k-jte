@@ -34,6 +34,11 @@ public class JteRequestFacade extends RequestFacade {
     }
 
     @Override
+    public void setAttribute(String name, Object o) {
+        this.config.putVar(name, o);
+    }
+
+    @Override
     public RequestDispatcher getRequestDispatcher(String path) {
         return new JteRequestDispatcher(path, config);
     }

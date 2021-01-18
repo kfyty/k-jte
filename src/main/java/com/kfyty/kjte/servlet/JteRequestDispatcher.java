@@ -29,9 +29,12 @@ public class JteRequestDispatcher implements RequestDispatcher {
     @Override
     public void include(ServletRequest request, ServletResponse response) throws ServletException, IOException {
         // 生成 include 指令配置
-        JstlTemplateEngineConfig includeConfig = new JstlTemplateEngineConfig(config.getTempOutPutDir(), config.getTemplatePath() + path);
-        includeConfig.setTemplatePath(config.getTemplatePath() + path.substring(0, path.lastIndexOf("/")));
+        String includePath = (path.startsWith(config.getTemplatePath()) ? "" : config.getTemplatePath()) + path.substring(0, path.lastIndexOf(".jsp") + 4);
+        String templatePath = (path.startsWith(config.getTemplatePath()) ? "" : config.getTemplatePath()) + path.substring(0, path.lastIndexOf("/"));
+        JstlTemplateEngineConfig includeConfig = new JstlTemplateEngineConfig(config.getTempOutPutDir(), includePath);
+        includeConfig.setTemplatePath(templatePath);
         includeConfig.putVar(config.getVariables());
+        this.resolveIncludeParams(path, includeConfig);
 
         // 生成 include 文件的字节码
         JstlTemplateEngine engine = new JstlTemplateEngine(includeConfig);
@@ -43,5 +46,16 @@ public class JteRequestDispatcher implements RequestDispatcher {
         JteResponseFacade responseFacade = (JteResponseFacade) renderEngine.getResponseFacade();
         byte[] bytes = responseFacade.getStringWriter().toString().getBytes(StandardCharsets.ISO_8859_1);
         response.getWriter().print(new String(bytes, StandardCharsets.UTF_8));
+    }
+
+    private void resolveIncludeParams(String path, JstlTemplateEngineConfig config) {
+        if(!path.contains(".jsp?")) {
+            return;
+        }
+        String params = path.substring(path.lastIndexOf(".jsp") + 5);
+        for (String param : params.split("&")) {
+            String[] split = param.split("=");
+            config.putVar(split[0], split.length > 1 ? split[1] : "");
+        }
     }
 }
