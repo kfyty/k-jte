@@ -8,6 +8,7 @@ import org.apache.catalina.session.StandardSession;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpSession;
+import java.nio.charset.StandardCharsets;
 
 public class JteRequestFacade extends RequestFacade {
     private final JstlTemplateEngineConfig config;
@@ -36,6 +37,11 @@ public class JteRequestFacade extends RequestFacade {
     @Override
     public void setAttribute(String name, Object o) {
         this.config.putVar(name, o);
+    }
+
+    @Override
+    public String getCharacterEncoding() {
+        return StandardCharsets.UTF_8.name();
     }
 
     @Override

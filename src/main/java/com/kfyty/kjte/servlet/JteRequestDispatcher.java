@@ -3,13 +3,16 @@ package com.kfyty.kjte.servlet;
 import com.kfyty.kjte.JstlRenderEngine;
 import com.kfyty.kjte.JstlTemplateEngine;
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
+import org.apache.tomcat.util.buf.MessageBytes;
+import org.apache.tomcat.util.http.Parameters;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
+import java.util.Enumeration;
 import java.util.List;
 
 public class JteRequestDispatcher implements RequestDispatcher {
@@ -34,7 +37,7 @@ public class JteRequestDispatcher implements RequestDispatcher {
         JstlTemplateEngineConfig includeConfig = new JstlTemplateEngineConfig(config.getTempOutPutDir(), includePath);
         includeConfig.setTemplatePath(templatePath);
         includeConfig.putVar(config.getVariables());
-        this.resolveIncludeParams(path, includeConfig);
+        this.resolveIncludeParams(request, path, includeConfig);
 
         // 生成 include 文件的字节码
         JstlTemplateEngine engine = new JstlTemplateEngine(includeConfig);
@@ -44,18 +47,25 @@ public class JteRequestDispatcher implements RequestDispatcher {
         JstlRenderEngine renderEngine = new JstlRenderEngine(includeClass, includeConfig);
         renderEngine.doRenderHtml();
         JteResponseFacade responseFacade = (JteResponseFacade) renderEngine.getResponseFacade();
-        byte[] bytes = responseFacade.getStringWriter().toString().getBytes(StandardCharsets.ISO_8859_1);
-        response.getWriter().print(new String(bytes, StandardCharsets.UTF_8));
+        response.getWriter().print(responseFacade.getStringWriter().toString());
     }
 
-    private void resolveIncludeParams(String path, JstlTemplateEngineConfig config) {
+    private void resolveIncludeParams(ServletRequest request, String path, JstlTemplateEngineConfig config) {
         if(!path.contains(".jsp?")) {
             return;
         }
         String params = path.substring(path.lastIndexOf(".jsp") + 5);
-        for (String param : params.split("&")) {
-            String[] split = param.split("=");
-            config.putVar(split[0], split.length > 1 ? split[1] : "");
+        MessageBytes messageBytes = MessageBytes.newInstance();
+        messageBytes.setString(params);
+        messageBytes.setCharset(Charset.forName(request.getCharacterEncoding()));
+        Parameters parameters = new Parameters();
+        parameters.setQuery(messageBytes);
+        parameters.setCharset(Charset.forName(request.getCharacterEncoding()));
+        Enumeration<String> parameterNames = parameters.getParameterNames();
+        while (parameterNames.hasMoreElements()) {
+            String key = parameterNames.nextElement();
+            String[] values = parameters.getParameterValues(key);
+            config.putVar(key, values != null && values.length == 1 ? values[0] : values);
         }
     }
 }
