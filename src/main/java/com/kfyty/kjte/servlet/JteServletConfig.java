@@ -4,7 +4,6 @@ import com.kfyty.kjte.config.JstlTemplateEngineConfig;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
-import java.io.File;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -20,8 +19,8 @@ public class JteServletConfig implements ServletConfig {
         params.put("suppressSmap", "true");
     }
 
-    public JteServletConfig(File jsp, ServletContext servletContext, JstlTemplateEngineConfig config) {
-        this.jspName = jsp.getName();
+    public JteServletConfig(String jspName, ServletContext servletContext, JstlTemplateEngineConfig config) {
+        this.jspName = jspName.endsWith(".jsp") ? jspName : jspName + ".jsp";
         this.servletContext = servletContext;
         this.config = config;
         params.put("scratchdir", config.getTempOutPutDir());

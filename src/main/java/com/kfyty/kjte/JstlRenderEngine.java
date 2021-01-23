@@ -5,8 +5,6 @@ import com.kfyty.kjte.servlet.JteRequestFacade;
 import com.kfyty.kjte.servlet.JteResponseFacade;
 import com.kfyty.kjte.servlet.JteServletConfig;
 import com.kfyty.kjte.servlet.JteServletContext;
-import javassist.ClassPool;
-import javassist.CtClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.connector.Request;
@@ -21,9 +19,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.jsp.JspFactory;
 import javax.servlet.jsp.PageContext;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.List;
@@ -36,7 +31,7 @@ public class JstlRenderEngine {
     private ResponseFacade responseFacade;
 
     private final JstlTemplateEngineConfig config;
-    private final List<String> classPaths;
+    private final List<Class<?>> classes;
 
     static {
         JspFactory.setDefaultFactory(new JspFactoryImpl() {
@@ -52,23 +47,20 @@ public class JstlRenderEngine {
         });
     }
 
-    public JstlRenderEngine(List<String> classPaths, JstlTemplateEngineConfig config) {
-        this.classPaths = classPaths;
+    public JstlRenderEngine(List<Class<?>> classes, JstlTemplateEngineConfig config) {
+        this.classes = classes;
         this.config = config;
     }
 
-    private void initRenderEngine(String classFile) {
+    private void initRenderEngine(Class<?> clazz) {
         try {
-            // 加载 jsp 字节码
-            InputStream classStream = new FileInputStream(classFile);
-            CtClass ctClass = ClassPool.getDefault().makeClass(classStream);
-            Class<?> clazz = ctClass.toClass();
+            // 实例化 jsp 对象
             this.curJspObj = (HttpJspBase) clazz.newInstance();
 
             // 初始化 servletConfig
             PrintWriter printWriter = new PrintWriter(new ByteArrayOutputStream());
             ServletContext servletContext = new JteServletContext(printWriter, URL.class.getResource("/WEB-INF/web.xml"), this.getClass().getClassLoader(), true, true);
-            this.servletConfig = new JteServletConfig(new File(classFile), servletContext, config);
+            this.servletConfig = new JteServletConfig(clazz.getSimpleName(), servletContext, config);
 
             // 初始化 requestFacade
             this.requestFacade = new JteRequestFacade(new Request(new Connector()) {
@@ -90,7 +82,7 @@ public class JstlRenderEngine {
                     public org.apache.coyote.Response getCoyoteResponse() {
                         return coyoteResponse;
                     }
-                }, classFile, config);
+                }, clazz, config);
         } catch (Exception e) {
             log.error("initRenderEngine error !", e);
             throw new RuntimeException(e);
@@ -108,8 +100,8 @@ public class JstlRenderEngine {
     public void doRenderHtml(String savePath) {
         try {
             config.setSavePath(savePath);
-            for (String classPath : this.classPaths) {
-                this.initRenderEngine(classPath);
+            for (Class<?> clazz : this.classes) {
+                this.initRenderEngine(clazz);
                 this.curJspObj.init(this.servletConfig);
                 this.curJspObj.service(this.requestFacade, this.responseFacade);
                 this.curJspObj.destroy();

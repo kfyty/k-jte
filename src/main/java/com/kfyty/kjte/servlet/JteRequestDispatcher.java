@@ -39,15 +39,15 @@ public class JteRequestDispatcher implements RequestDispatcher {
         includeConfig.putVar(config.getVariables());
         this.resolveIncludeParams(request, path, includeConfig);
 
-        // 生成 include 文件的字节码
+        // 生成并加载 include 文件的字节码
         JstlTemplateEngine engine = new JstlTemplateEngine(includeConfig);
-        List<String> includeClass = engine.compiler();
+        List<Class<?>> includeClass = engine.load();
 
         // 渲染 include 指令文件并写入 response
         JstlRenderEngine renderEngine = new JstlRenderEngine(includeClass, includeConfig);
         renderEngine.doRenderHtml();
         JteResponseFacade responseFacade = (JteResponseFacade) renderEngine.getResponseFacade();
-        response.getWriter().print(responseFacade.getStringWriter().toString());
+        response.getWriter().print(responseFacade.getString());
     }
 
     private void resolveIncludeParams(ServletRequest request, String path, JstlTemplateEngineConfig config) {

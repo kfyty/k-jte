@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
+import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,10 +21,23 @@ public class JstlTemplateEngineConfig {
     private String tempOutPutDir;
     private String savePath;
     private List<File> jspFiles;
-    private Map<String, Object> variables;
+    private Writer out;
+    private Map<Object, Object> variables;
+
+    public JstlTemplateEngineConfig(String templatePath) {
+        this(DEFAULT_OUT_PUT_TEMP_DIR, templatePath, DEFAULT_OUT_PUT_TEMP_DIR);
+    }
 
     public JstlTemplateEngineConfig(String savePath, String templatePath) {
         this(savePath, templatePath, DEFAULT_OUT_PUT_TEMP_DIR);
+    }
+
+    public JstlTemplateEngineConfig(String templatePath, List<File> jspFiles) {
+        this.templatePath = templatePath;
+        this.tempOutPutDir = DEFAULT_OUT_PUT_TEMP_DIR;
+        this.savePath = DEFAULT_OUT_PUT_TEMP_DIR;
+        this.jspFiles = jspFiles;
+        this.variables = new HashMap<>();
     }
 
     public JstlTemplateEngineConfig(String savePath, String templatePath, String tempOutPutDir) {
@@ -42,13 +56,18 @@ public class JstlTemplateEngineConfig {
         return this;
     }
 
-    public JstlTemplateEngineConfig putVar(String key, Object value) {
+    public JstlTemplateEngineConfig putVar(Object key, Object value) {
         this.variables.put(key, value);
         return this;
     }
 
-    public JstlTemplateEngineConfig putVar(Map<String, Object> variables) {
+    public JstlTemplateEngineConfig putVar(Map<Object, Object> variables) {
         this.variables.putAll(variables);
+        return this;
+    }
+
+    public JstlTemplateEngineConfig clearVar() {
+        this.variables.clear();
         return this;
     }
 
