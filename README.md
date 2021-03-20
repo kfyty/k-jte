@@ -57,10 +57,10 @@ public class Main {
 
         // 模板引擎
         JstlTemplateEngine engine = new JstlTemplateEngine(config);
-        List<String> compiler = engine.compile();
+        List<Class<?>> classes = engine.load();
 
         // 渲染引擎
-        JstlRenderEngine renderEngine = new JstlRenderEngine(compiler, config);
+        JstlRenderEngine renderEngine = new JstlRenderEngine(classes, config);
         renderEngine.doRenderHtml();
     }
 }
