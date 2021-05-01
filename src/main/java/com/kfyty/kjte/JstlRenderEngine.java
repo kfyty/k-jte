@@ -1,6 +1,5 @@
 package com.kfyty.kjte;
 
-import com.kfyty.kjte.config.JstlTemplateEngineConfig;
 import com.kfyty.kjte.servlet.JteRequestFacade;
 import com.kfyty.kjte.servlet.JteResponseFacade;
 import com.kfyty.kjte.servlet.JteServletConfig;
@@ -30,7 +29,7 @@ public class JstlRenderEngine {
     private RequestFacade requestFacade;
     private ResponseFacade responseFacade;
 
-    private final JstlTemplateEngineConfig config;
+    private final JstlTemplateEngine templateEngine;
     private final List<Class<?>> classes;
 
     static {
@@ -39,17 +38,17 @@ public class JstlRenderEngine {
             public void releasePageContext(PageContext pc) {
                 try {
                     pc.getOut().flush();
-                    ((JteResponseFacade) pc.getResponse()).saveHtml();
+                    ((JteResponseFacade) pc.getResponse()).doWriteOut();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error("releasePageContext error !", e);
                 }
             }
         });
     }
 
-    public JstlRenderEngine(List<Class<?>> classes, JstlTemplateEngineConfig config) {
+    public JstlRenderEngine(JstlTemplateEngine templateEngine, List<Class<?>> classes) {
         this.classes = classes;
-        this.config = config;
+        this.templateEngine = templateEngine;
     }
 
     private void initRenderEngine(Class<?> clazz) {
@@ -60,7 +59,7 @@ public class JstlRenderEngine {
             // 初始化 servletConfig
             PrintWriter printWriter = new PrintWriter(new ByteArrayOutputStream());
             ServletContext servletContext = new JteServletContext(printWriter, URL.class.getResource("/WEB-INF/web.xml"), this.getClass().getClassLoader(), true, true);
-            this.servletConfig = new JteServletConfig(clazz.getSimpleName(), servletContext, config);
+            this.servletConfig = new JteServletConfig(clazz.getSimpleName(), servletContext, templateEngine.getConfig());
 
             // 初始化 requestFacade
             this.requestFacade = new JteRequestFacade(new Request(new Connector()) {
@@ -72,7 +71,7 @@ public class JstlRenderEngine {
                 public String getMethod() {
                     return "POST";
                 }
-            }, config);
+            }, templateEngine.getConfig());
 
             // 初始化 responseFacade
             this.responseFacade = new JteResponseFacade(new Response() {
@@ -82,9 +81,9 @@ public class JstlRenderEngine {
                     public org.apache.coyote.Response getCoyoteResponse() {
                         return coyoteResponse;
                     }
-                }, clazz, config);
+                }, clazz, templateEngine);
         } catch (Exception e) {
-            log.error("initRenderEngine error !", e);
+            log.error("initRenderEngine error !");
             throw new RuntimeException(e);
         }
     }
@@ -94,12 +93,12 @@ public class JstlRenderEngine {
     }
 
     public void doRenderHtml() {
-        this.doRenderHtml(config.getSavePath());
+        this.doRenderHtml(templateEngine.getConfig().getSavePath());
     }
 
     public void doRenderHtml(String savePath) {
         try {
-            config.setSavePath(savePath);
+            templateEngine.getConfig().setSavePath(savePath);
             for (Class<?> clazz : this.classes) {
                 this.initRenderEngine(clazz);
                 this.curJspObj.init(this.servletConfig);
@@ -107,7 +106,7 @@ public class JstlRenderEngine {
                 this.curJspObj.destroy();
             }
         } catch (Exception e) {
-            log.error("doRenderHtml error !", e);
+            log.error("doRenderHtml error !");
             throw new RuntimeException(e);
         }
     }

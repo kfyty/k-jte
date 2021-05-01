@@ -5,6 +5,7 @@ import com.kfyty.kjte.servlet.JteJspCompilationContext;
 import com.kfyty.kjte.servlet.JteServletConfig;
 import com.kfyty.kjte.utils.TldCacheUtil;
 import javassist.ClassPool;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jasper.EmbeddedServletOptions;
 import org.apache.jasper.JspCompilationContext;
@@ -25,7 +26,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,14 +36,27 @@ public class JstlTemplateEngine {
     public static final String CLASS_SUFFIX = ".class";
     public static final String DEFAULT_OUT_PUT_TEMP_DIR = System.getProperty("java.io.tmpdir");
 
-    private JspCompilationContext compilationContext;
     private JspServletWrapper jspServletWrapper;
+
+    @Getter
     private Compiler compiler;
 
+    @Getter
+    private JspCompilationContext compilationContext;
+
+    @Getter
     private final JstlTemplateEngineConfig config;
+
+    @Getter
+    private final Map<String, String> generateComplete;
+
+    @Getter
+    private final Map<String, Class<?>> compileClass;
 
     public JstlTemplateEngine(JstlTemplateEngineConfig config) {
         this.config = config;
+        this.generateComplete = new HashMap<>();
+        this.compileClass = new HashMap<>();
     }
 
     static {
@@ -71,7 +87,7 @@ public class JstlTemplateEngine {
             JspRuntimeContext jspRuntimeContext = new JspRuntimeContext(servletContext, options);
 
             // 初始化 compilationContext
-            this.compilationContext = new JteJspCompilationContext(relativePath, options, servletContext, null, jspRuntimeContext, config);
+            this.compilationContext = new JteJspCompilationContext(relativePath, options, servletContext, null, jspRuntimeContext, this);
 
             // 初始化 jspServletWrapper
             this.jspServletWrapper = new JspServletWrapper(jspServlet, options, relativePath, jspRuntimeContext);
@@ -79,7 +95,7 @@ public class JstlTemplateEngine {
             // 初始化 compiler
             this.compiler = new JDTCompiler();
         } catch (Exception e) {
-            log.error("JstlTemplateEngine error !", e);
+            log.error("JstlTemplateEngine error !");
             throw new RuntimeException(e);
         }
     }

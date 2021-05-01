@@ -1,22 +1,29 @@
 package com.kfyty.kjte.servlet;
 
+import com.kfyty.kjte.JstlTemplateEngine;
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
+import com.kfyty.kjte.utils.ReflectUtil;
+import org.apache.jasper.EmbeddedServletOptions;
 import org.apache.jasper.JspCompilationContext;
 import org.apache.jasper.Options;
+import org.apache.jasper.compiler.Compiler;
 import org.apache.jasper.compiler.JspRuntimeContext;
 import org.apache.jasper.servlet.JspServletWrapper;
 import org.apache.tomcat.Jar;
 
 import javax.servlet.ServletContext;
+import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.Optional;
 
 public class JteJspCompilationContext extends JspCompilationContext {
-    private final JstlTemplateEngineConfig config;
+    private final JstlTemplateEngine templateEngine;
 
-    public JteJspCompilationContext(String jspUri, Options options, ServletContext context, JspServletWrapper jsw, JspRuntimeContext rctxt, JstlTemplateEngineConfig config) {
+    public JteJspCompilationContext(String jspUri, Options options, ServletContext context, JspServletWrapper jsw, JspRuntimeContext rctxt, JstlTemplateEngine templateEngine) {
         super(jspUri, options, context, jsw, rctxt);
-        this.config = config;
+        this.templateEngine = templateEngine;
     }
 
     @Override
@@ -31,6 +38,67 @@ public class JteJspCompilationContext extends JspCompilationContext {
 
     @Override
     public String getOutputDir() {
-        return config.getTempOutPutDir();
+        return templateEngine.getConfig().getTempOutPutDir();
+    }
+
+    @Override
+    public Compiler getCompiler() {
+        return Optional.ofNullable(super.getCompiler()).orElse(templateEngine.getCompiler());
+    }
+
+    @Override
+    public String getServletJavaFileName() {
+        if(returnSuper()) {
+            return super.getServletJavaFileName();
+        }
+        JstlTemplateEngineConfig config = templateEngine.getConfig();
+        String savePath = config.getSavePath().endsWith(File.separator) ? config.getSavePath() : config.getSavePath() + File.separator;
+        return savePath + this.getServletClassName() + ".java";
+    }
+
+    @Override
+    public String getServletClassName() {
+        String className = super.getServletClassName();
+        if(returnSuper()) {
+            return className;
+        }
+        return className.replaceAll("_jsp$", "");
+    }
+
+    @Override
+    public Options getOptions() {
+        if(returnSuper()) {
+            return super.getOptions();
+        }
+        File java = new File(templateEngine.getConfig().getSavePath());
+        EmbeddedServletOptions options = (EmbeddedServletOptions) super.getOptions();
+        Field field = ReflectUtil.findField(options.getClass(), "scratchDir");
+        ReflectUtil.setField(options, field, java);
+        return options;
+    }
+
+    @Override
+    public String getServletPackageName() {
+        if(returnSuper()) {
+            return super.getServletPackageName();
+        }
+        String pack = "package";
+        String code = templateEngine.getGenerateComplete().get(super.getServletClassName());
+        int index = code.indexOf(pack);
+        String packageName = code.substring(index + pack.length(), code.indexOf(';', index));
+        return this.mkdirIfNecessary(packageName.trim());
+    }
+
+    private boolean returnSuper() {
+        return !templateEngine.getConfig().isCompiler() ||
+                templateEngine.getGenerateComplete().get(super.getServletClassName()) == null;
+    }
+
+    private String mkdirIfNecessary(String packageName) {
+        File dir = new File(templateEngine.getConfig().getSavePath() + File.separator + packageName.replace(".", File.separator));
+        if(!dir.exists() && !dir.mkdirs()) {
+            throw new RuntimeException("create dir failed: " + dir.getAbsolutePath());
+        }
+        return packageName;
     }
 }
