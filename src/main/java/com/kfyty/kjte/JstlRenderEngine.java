@@ -92,11 +92,11 @@ public class JstlRenderEngine {
         return this.responseFacade;
     }
 
-    public void doRenderHtml() {
-        this.doRenderHtml(templateEngine.getConfig().getSavePath());
+    public void doRenderTemplate() {
+        this.doRenderTemplate(templateEngine.getConfig().getSavePath());
     }
 
-    public void doRenderHtml(String savePath) {
+    public void doRenderTemplate(String savePath) {
         try {
             templateEngine.getConfig().setSavePath(savePath);
             for (Class<?> clazz : this.classes) {

@@ -52,8 +52,7 @@ public class JteJspCompilationContext extends JspCompilationContext {
             return super.getServletJavaFileName();
         }
         JstlTemplateEngineConfig config = templateEngine.getConfig();
-        String savePath = config.getSavePath().endsWith(File.separator) ? config.getSavePath() : config.getSavePath() + File.separator;
-        return savePath + this.getServletClassName() + ".java";
+        return config.getSavePath() + this.getServletClassName() + ".java";
     }
 
     @Override
@@ -95,7 +94,7 @@ public class JteJspCompilationContext extends JspCompilationContext {
     }
 
     private String mkdirIfNecessary(String packageName) {
-        File dir = new File(templateEngine.getConfig().getSavePath() + File.separator + packageName.replace(".", File.separator));
+        File dir = new File(templateEngine.getConfig().getSavePath() + packageName.replace(".", File.separator));
         if(!dir.exists() && !dir.mkdirs()) {
             throw new RuntimeException("create dir failed: " + dir.getAbsolutePath());
         }

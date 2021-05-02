@@ -27,7 +27,6 @@ public class JteResponseFacade extends ResponseFacade {
     private static final String BLANK_LINE = "(?m)^\\s*$" + System.lineSeparator();
 
     private final String jspName;
-    private final Class<?> jspClass;
     private final JstlTemplateEngine templateEngine;
     private final StringWriter stringWriter = new StringWriter();
     private final PrintWriter printWriter = new PrintWriter(stringWriter, true);
@@ -37,7 +36,6 @@ public class JteResponseFacade extends ResponseFacade {
         JstlTemplateEngineConfig config = templateEngine.getConfig();
         String suffix = config.getSuffix() == null || config.getSuffix().isEmpty() ? ".html" : config.getSuffix();
         this.jspName = jspClass.getSimpleName().replaceAll("_jsp$", "") + suffix;
-        this.jspClass = jspClass;
         this.templateEngine = templateEngine;
     }
 
@@ -76,8 +74,11 @@ public class JteResponseFacade extends ResponseFacade {
         JspCompilationContext compilationContext = templateEngine.getCompilationContext();
         templateEngine.getGenerateComplete().put(compilationContext.getServletClassName(), code);
         this.doInvokeGenerateClass(compilationContext);
-        String classPath = config.getSavePath() + File.separator + compilationContext.getServletPackageName().replace(".", File.separator) + File.separator + compilationContext.getServletClassName() + CLASS_SUFFIX;
+        String classPath = config.getSavePath() + compilationContext.getServletPackageName().replace(".", File.separator) + File.separator + compilationContext.getServletClassName() + CLASS_SUFFIX;
         Class<?> clazz = classPool.makeClass(new FileInputStream(classPath)).toClass();
+        if(templateEngine.getCompileClass().containsKey(clazz.getName())) {
+            throw new IllegalArgumentException("The class already exists !");
+        }
         templateEngine.getCompileClass().put(clazz.getName(), clazz);
     }
 

@@ -1,5 +1,6 @@
 package com.kfyty.kjte;
 
+import com.kfyty.kjte.compiler.JteJDTCompiler;
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
 import com.kfyty.kjte.servlet.JteJspCompilationContext;
 import com.kfyty.kjte.servlet.JteServletConfig;
@@ -10,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.jasper.EmbeddedServletOptions;
 import org.apache.jasper.JspCompilationContext;
 import org.apache.jasper.compiler.Compiler;
-import org.apache.jasper.compiler.JDTCompiler;
 import org.apache.jasper.compiler.JspRuntimeContext;
 import org.apache.jasper.compiler.TldCache;
 import org.apache.jasper.runtime.JspFactoryImpl;
@@ -93,7 +93,7 @@ public class JstlTemplateEngine {
             this.jspServletWrapper = new JspServletWrapper(jspServlet, options, relativePath, jspRuntimeContext);
 
             // 初始化 compiler
-            this.compiler = new JDTCompiler();
+            this.compiler = new JteJDTCompiler();
         } catch (Exception e) {
             log.error("JstlTemplateEngine error !");
             throw new RuntimeException(e);
@@ -116,8 +116,7 @@ public class JstlTemplateEngine {
                 this.initEngine(jspFile);
                 compiler.init(compilationContext, jspServletWrapper);
                 compiler.compile(true);
-                String classPath = this.calcClassPath(tempOutPutDir, config.getTemplatePath());
-                result.add(classPath);
+                result.add(this.calcClassPath());
             }
             return result;
         } catch (Exception e) {
@@ -139,18 +138,8 @@ public class JstlTemplateEngine {
                 }).collect(Collectors.toList());
     }
 
-    private String calcClassPath(String tempOutPutDir, String templatePath) {
-        if(!tempOutPutDir.endsWith(File.separator)) {
-            tempOutPutDir = tempOutPutDir + File.separator;
-        }
-        if(!templatePath.startsWith(File.separator)) {
-            templatePath = File.separator + (templatePath.startsWith("/") ? templatePath.substring(1) : templatePath);
-        }
-        if(!templatePath.endsWith(File.separator)) {
-            templatePath = templatePath + File.separator;
-        }
-        return tempOutPutDir +
-                "org" + File.separator + "apache" + File.separator + "jsp" +
-                templatePath + this.compilationContext.getServletClassName();
+    private String calcClassPath() {
+        String path = this.compilationContext.getOutputDir() + compilationContext.getServletPackageName().replace(".", File.separator) + File.separator;
+        return path + compilationContext.getServletClassName() + CLASS_SUFFIX;
     }
 }

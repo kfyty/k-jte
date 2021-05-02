@@ -45,7 +45,7 @@ public class JteRequestDispatcher implements RequestDispatcher {
 
         // 渲染 include 指令文件并写入 response
         JstlRenderEngine renderEngine = new JstlRenderEngine(engine, includeClass);
-        renderEngine.doRenderHtml();
+        renderEngine.doRenderTemplate();
         JteResponseFacade responseFacade = (JteResponseFacade) renderEngine.getResponseFacade();
         response.getWriter().print(responseFacade.getString());
     }

@@ -23,7 +23,7 @@ public class JstlTemplateEngineConfig {
     private boolean compiler;
 
     /**
-     * 生成文件后缀 eg: .html
+     * 生成文件后缀，默认: .html
      */
     private String suffix;
 
@@ -87,6 +87,22 @@ public class JstlTemplateEngineConfig {
             this.jspFiles.add(jsp);
         }
         return this;
+    }
+
+    public String getTemplatePath() {
+        String path = templatePath;
+        if(templatePath.endsWith(".jsp")) {
+            int index = templatePath.lastIndexOf("\\");
+            if(index == -1) {
+                index = templatePath.lastIndexOf("/");
+            }
+            path = templatePath.substring(0, index);
+        }
+        return path.endsWith("\\") || path.endsWith("/") ? path.substring(0, path.length() - 1) : path;
+    }
+
+    public String getSavePath() {
+        return savePath.endsWith(File.separator) ? savePath : savePath + File.separator;
     }
 
     public JstlTemplateEngineConfig putVar(Object key, Object value) {
