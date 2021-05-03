@@ -63,13 +63,16 @@ public class JstlRenderEngine {
 
             // 初始化 requestFacade
             this.requestFacade = new JteRequestFacade(new Request(new Connector()) {
-                {
-                    this.setCoyoteRequest(new org.apache.coyote.Request());
-                }
+                private final org.apache.coyote.Request coyoteRequest = new org.apache.coyote.Request();
 
                 @Override
                 public String getMethod() {
                     return "POST";
+                }
+
+                @Override
+                public org.apache.coyote.Request getCoyoteRequest() {
+                    return coyoteRequest;
                 }
             }, templateEngine.getConfig());
 
@@ -106,7 +109,7 @@ public class JstlRenderEngine {
                 this.curJspObj.destroy();
             }
         } catch (Exception e) {
-            log.error("doRenderHtml error !");
+            log.error("doRenderTemplate error !");
             throw new RuntimeException(e);
         }
     }
