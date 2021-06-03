@@ -26,20 +26,35 @@
         <maven.compiler.version>3.8.0</maven.compiler.version>
         <maven.source.version>3.1.0</maven.source.version>
 
+        <kfyty.utils.version>1.0-SNAPSHOT</kfyty.utils.version>
+
         <tomcat.version>9.0.35</tomcat.version>
         <jstl.version>1.2</jstl.version>
         <taglibs.version>1.2.5</taglibs.version>
 
         <javassist.version>3.25.0-GA</javassist.version>
 
-        <sl4j.version>1.7.25</sl4j.version>
-
-        <lombok.version>1.18.6</lombok.version>
-
         <junit.version>4.13</junit.version>
+        <lombok.version>1.18.6</lombok.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.kfyty</groupId>
+            <artifactId>kfyty-support</artifactId>
+            <version>${kfyty.utils.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>cglib</groupId>
+                    <artifactId>cglib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-servlet-api</artifactId>
@@ -95,22 +110,17 @@
         </dependency>
 
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${sl4j.version}</version>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 

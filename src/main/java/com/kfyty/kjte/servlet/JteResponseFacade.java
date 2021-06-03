@@ -2,7 +2,7 @@ package com.kfyty.kjte.servlet;
 
 import com.kfyty.kjte.JstlTemplateEngine;
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
-import com.kfyty.kjte.utils.ReflectUtil;
+import com.kfyty.support.utils.ReflectUtil;
 import javassist.ClassPool;
 import lombok.SneakyThrows;
 import org.apache.catalina.connector.Response;
@@ -45,7 +45,7 @@ public class JteResponseFacade extends ResponseFacade {
     }
 
     public String getString() {
-        return this.stringWriter.toString().replaceAll(BLANK_LINE, System.lineSeparator());
+        return this.stringWriter.toString().replaceFirst(BLANK_LINE, "").replaceAll(BLANK_LINE, System.lineSeparator());
     }
 
     public void doWriteOut() throws IOException {
@@ -83,7 +83,7 @@ public class JteResponseFacade extends ResponseFacade {
     }
 
     private void doInvokeGenerateClass(JspCompilationContext compilationContext) {
-        Method method = ReflectUtil.findMethod(compilationContext.getCompiler().getClass(), "generateClass", Map.class);
+        Method method = ReflectUtil.getMethod(compilationContext.getCompiler().getClass(), "generateClass", Map.class);
         ReflectUtil.invokeMethod(compilationContext.getCompiler(), method, new HashMap<>());
     }
 }
