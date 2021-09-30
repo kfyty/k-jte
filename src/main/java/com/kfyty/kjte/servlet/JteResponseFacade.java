@@ -22,10 +22,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.kfyty.kjte.JstlTemplateEngine.CLASS_SUFFIX;
+import static com.kfyty.support.utils.CommonUtil.BLANK_LINE_PATTERN;
 
 public class JteResponseFacade extends ResponseFacade {
-    private static final String BLANK_LINE = "(?m)^\\s*$" + System.lineSeparator();
-
     private final String jspName;
     private final JstlTemplateEngine templateEngine;
     private final StringWriter stringWriter = new StringWriter();
@@ -45,19 +44,19 @@ public class JteResponseFacade extends ResponseFacade {
     }
 
     public String getString() {
-        return this.stringWriter.toString().replaceFirst(BLANK_LINE, "").replaceAll(BLANK_LINE, System.lineSeparator());
+        return this.stringWriter.toString().replaceFirst(BLANK_LINE_PATTERN.pattern(), "").replaceAll(BLANK_LINE_PATTERN.pattern(), System.lineSeparator());
     }
 
     public void doWriteOut() throws IOException {
         String code = this.getString();
         JstlTemplateEngineConfig config = templateEngine.getConfig();
-        if(config.getOut() != null) {
+        if (config.getOut() != null) {
             config.getOut().write(code);
             config.getOut().flush();
             return;
         }
         File file = new File(config.getSavePath(), jspName);
-        try(BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file))) {
+        try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file))) {
             out.write(code.getBytes(StandardCharsets.UTF_8));
             out.flush();
         }
@@ -66,7 +65,7 @@ public class JteResponseFacade extends ResponseFacade {
 
     @SneakyThrows
     private void doCompileClassIfNecessary(String code) {
-        if(!templateEngine.getConfig().isCompiler()) {
+        if (!templateEngine.getConfig().isCompiler()) {
             return;
         }
         ClassPool classPool = ClassPool.getDefault();
@@ -76,7 +75,7 @@ public class JteResponseFacade extends ResponseFacade {
         this.doInvokeGenerateClass(compilationContext);
         String classPath = config.getSavePath() + compilationContext.getServletPackageName().replace(".", File.separator) + File.separator + compilationContext.getServletClassName() + CLASS_SUFFIX;
         Class<?> clazz = classPool.makeClass(new FileInputStream(classPath)).toClass();
-        if(templateEngine.getCompileClass().containsKey(clazz.getName())) {
+        if (templateEngine.getCompileClass().containsKey(clazz.getName())) {
             throw new IllegalArgumentException("The class already exists !");
         }
         templateEngine.getCompileClass().put(clazz.getName(), clazz);

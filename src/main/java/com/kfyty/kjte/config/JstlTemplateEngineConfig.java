@@ -1,13 +1,12 @@
 package com.kfyty.kjte.config;
 
+import com.kfyty.support.utils.CommonUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.Writer;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,11 +78,11 @@ public class JstlTemplateEngineConfig {
         this.tempOutPutDir = tempOutPutDir;
         this.jspFiles = new ArrayList<>();
         this.variables = new HashMap<>();
-        this.initJspPaths();
+        this.scanJspPaths();
     }
 
     public JstlTemplateEngineConfig addJsp(File jsp) {
-        if(jsp != null && jsp.exists() && jsp.isFile()) {
+        if (jsp != null && jsp.exists() && jsp.isFile()) {
             this.jspFiles.add(jsp);
         }
         return this;
@@ -91,9 +90,9 @@ public class JstlTemplateEngineConfig {
 
     public String getTemplatePath() {
         String path = templatePath;
-        if(templatePath.endsWith(".jsp")) {
+        if (templatePath.endsWith(".jsp")) {
             int index = templatePath.lastIndexOf("\\");
-            if(index == -1) {
+            if (index == -1) {
                 index = templatePath.lastIndexOf("/");
             }
             path = templatePath.substring(0, index);
@@ -120,21 +119,7 @@ public class JstlTemplateEngineConfig {
         return this;
     }
 
-    private void initJspPaths() {
-        try {
-            URL root = Thread.currentThread().getContextClassLoader().getResource("");
-            File path = new File(root.getPath() + templatePath);
-            if(path.isFile()) {
-                this.jspFiles.add(path);
-                return;
-            }
-            File[] files = path.listFiles();
-            if(files != null) {
-                Arrays.stream(files).filter(File::isFile).filter(e -> e.getName().endsWith(".jsp")).forEach(jspFiles::add);
-            }
-        } catch (Exception e) {
-            log.error("init jsp paths error !");
-            throw new RuntimeException(e);
-        }
+    private void scanJspPaths() {
+        jspFiles.addAll(CommonUtil.scanFiles(templatePath, e -> e.getName().endsWith(".jsp")));
     }
 }
