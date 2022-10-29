@@ -1,6 +1,6 @@
 package com.kfyty.kjte.config;
 
-import com.kfyty.support.utils.CommonUtil;
+import com.kfyty.core.utils.IOUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -120,6 +120,6 @@ public class JstlTemplateEngineConfig {
     }
 
     private void scanJspPaths() {
-        jspFiles.addAll(CommonUtil.scanFiles(templatePath, e -> e.getName().endsWith(".jsp")));
+        jspFiles.addAll(IOUtil.scanFiles(templatePath, e -> e.getName().endsWith(".jsp")));
     }
 }
