@@ -6,10 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.Writer;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.kfyty.kjte.JstlTemplateEngine.DEFAULT_OUT_PUT_TEMP_DIR;
 
@@ -119,7 +121,18 @@ public class JstlTemplateEngineConfig {
         return this;
     }
 
-    private void scanJspPaths() {
-        jspFiles.addAll(IOUtil.scanFiles(templatePath, e -> e.getName().endsWith(".jsp")));
+    protected void scanJspPaths() {
+        String path = this.templatePath;
+        if (!path.endsWith(".jsp")) {
+            if (path.endsWith("\\") || path.endsWith("/")) {
+                path += "*.jsp";
+            } else {
+                path += File.separator + "*.jsp";
+            }
+        }
+        Set<URL> urls = IOUtil.scanFiles(path, this.getClass().getClassLoader());
+        for (URL url : urls) {
+            jspFiles.add(new File(url.getFile()));
+        }
     }
 }
