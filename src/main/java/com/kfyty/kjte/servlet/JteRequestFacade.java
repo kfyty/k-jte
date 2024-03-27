@@ -1,13 +1,13 @@
 package com.kfyty.kjte.servlet;
 
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.http.HttpSession;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.RequestFacade;
 import org.apache.catalina.session.StandardManager;
 import org.apache.catalina.session.StandardSession;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.http.HttpSession;
 import java.nio.charset.StandardCharsets;
 
 public class JteRequestFacade extends RequestFacade {

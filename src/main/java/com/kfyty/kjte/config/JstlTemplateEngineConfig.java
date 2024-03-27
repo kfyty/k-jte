@@ -1,8 +1,11 @@
 package com.kfyty.kjte.config;
 
-import com.kfyty.core.utils.IOUtil;
+import com.kfyty.kjte.servlet.JteResponseFacade;
+import jakarta.servlet.jsp.JspFactory;
+import jakarta.servlet.jsp.PageContext;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.jasper.runtime.JspFactoryImpl;
 
 import java.io.File;
 import java.io.Writer;
@@ -13,11 +16,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.kfyty.core.utils.CommonUtil.removePrefix;
+import static com.kfyty.core.utils.IOUtil.scanFiles;
 import static com.kfyty.kjte.JstlTemplateEngine.DEFAULT_OUT_PUT_TEMP_DIR;
 
 @Data
 @Slf4j
 public class JstlTemplateEngineConfig {
+    static {
+        JspFactory.setDefaultFactory(new JspFactoryImpl() {
+
+            @Override
+            public void releasePageContext(PageContext pc) {
+                try {
+                    pc.getOut().flush();
+                    ((JteResponseFacade) pc.getResponse()).write();
+                    super.releasePageContext(pc);
+                } catch (Exception e) {
+                    log.error("releasePageContext error !", e);
+                }
+            }
+        });
+    }
+
     /**
      * 对于生成的 java 文件，是否执行二次编译
      */
@@ -127,10 +148,10 @@ public class JstlTemplateEngineConfig {
             if (path.endsWith("\\") || path.endsWith("/")) {
                 path += "*.jsp";
             } else {
-                path += File.separator + "*.jsp";
+                path += "/*.jsp";
             }
         }
-        Set<URL> urls = IOUtil.scanFiles(path, this.getClass().getClassLoader());
+        Set<URL> urls = scanFiles(removePrefix("/", path), this.getClass().getClassLoader());
         for (URL url : urls) {
             jspFiles.add(new File(url.getFile()));
         }

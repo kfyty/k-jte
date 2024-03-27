@@ -1,30 +1,30 @@
 package com.kfyty.kjte;
 
-import com.kfyty.kjte.compiler.JteJDTCompiler;
+import com.kfyty.core.utils.ExceptionUtil;
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
 import com.kfyty.kjte.servlet.JteJspCompilationContext;
 import com.kfyty.kjte.servlet.JteServletConfig;
 import com.kfyty.kjte.utils.TldCacheUtil;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
 import javassist.ClassPool;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jasper.EmbeddedServletOptions;
 import org.apache.jasper.JspCompilationContext;
 import org.apache.jasper.compiler.Compiler;
+import org.apache.jasper.compiler.JDTCompiler;
 import org.apache.jasper.compiler.JspRuntimeContext;
 import org.apache.jasper.compiler.TldCache;
-import org.apache.jasper.runtime.JspFactoryImpl;
 import org.apache.jasper.servlet.JspCServletContext;
 import org.apache.jasper.servlet.JspServlet;
 import org.apache.jasper.servlet.JspServletWrapper;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.jsp.JspFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,10 +59,6 @@ public class JstlTemplateEngine {
         this.compileClass = new HashMap<>();
     }
 
-    static {
-        JspFactory.setDefaultFactory(new JspFactoryImpl());
-    }
-
     private void initEngine(final File jsp) {
         try {
             String relativePath = config.getTemplatePath() + "/" + jsp.getName();
@@ -93,19 +89,14 @@ public class JstlTemplateEngine {
             this.jspServletWrapper = new JspServletWrapper(jspServlet, options, relativePath, jspRuntimeContext);
 
             // 初始化 compiler
-            this.compiler = new JteJDTCompiler();
+            this.compiler = new JDTCompiler();
         } catch (Exception e) {
-            log.error("JstlTemplateEngine error !");
-            throw new RuntimeException(e);
+            throw ExceptionUtil.wrap(e);
         }
     }
 
     public List<String> compile() {
         return compile(config.getTempOutPutDir());
-    }
-
-    public List<Class<?>> load() {
-        return load(config.getTempOutPutDir());
     }
 
     public List<String> compile(String tempOutPutDir) {
@@ -120,9 +111,12 @@ public class JstlTemplateEngine {
             }
             return result;
         } catch (Exception e) {
-            log.error("compiler jsp error !", e);
-            throw new RuntimeException(e);
+            throw ExceptionUtil.wrap(e);
         }
+    }
+
+    public List<Class<?>> load() {
+        return load(config.getTempOutPutDir());
     }
 
     public List<Class<?>> load(String tempOutPutDir) {
@@ -131,9 +125,9 @@ public class JstlTemplateEngine {
                 .map(e -> {
                     try {
                         String clazz = e.replace(CLASS_SUFFIX, "").replace(".", "_") + CLASS_SUFFIX;
-                        return classPool.makeClass(new FileInputStream(clazz)).toClass();
+                        return classPool.makeClass(Files.newInputStream(Paths.get(clazz))).toClass();
                     } catch (Exception ex) {
-                        throw new RuntimeException(ex);
+                        throw ExceptionUtil.wrap(ex);
                     }
                 }).collect(Collectors.toList());
     }

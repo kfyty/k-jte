@@ -1,9 +1,14 @@
 package com.kfyty.kjte;
 
+import com.kfyty.core.utils.ExceptionUtil;
+import com.kfyty.core.utils.ReflectUtil;
 import com.kfyty.kjte.servlet.JteRequestFacade;
 import com.kfyty.kjte.servlet.JteResponseFacade;
 import com.kfyty.kjte.servlet.JteServletConfig;
 import com.kfyty.kjte.servlet.JteServletContext;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.connector.Request;
@@ -11,18 +16,13 @@ import org.apache.catalina.connector.RequestFacade;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.connector.ResponseFacade;
 import org.apache.jasper.runtime.HttpJspBase;
-import org.apache.jasper.runtime.JspFactoryImpl;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.jsp.JspFactory;
-import javax.servlet.jsp.PageContext;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.util.List;
 
 @Slf4j
+@Getter
 public class JstlRenderEngine {
     private HttpJspBase curJspObj;
     private ServletConfig servletConfig;
@@ -32,20 +32,6 @@ public class JstlRenderEngine {
     private final JstlTemplateEngine templateEngine;
     private final List<Class<?>> classes;
 
-    static {
-        JspFactory.setDefaultFactory(new JspFactoryImpl() {
-            @Override
-            public void releasePageContext(PageContext pc) {
-                try {
-                    pc.getOut().flush();
-                    ((JteResponseFacade) pc.getResponse()).doWriteOut();
-                } catch (Exception e) {
-                    log.error("releasePageContext error !", e);
-                }
-            }
-        });
-    }
-
     public JstlRenderEngine(JstlTemplateEngine templateEngine, List<Class<?>> classes) {
         this.classes = classes;
         this.templateEngine = templateEngine;
@@ -54,45 +40,27 @@ public class JstlRenderEngine {
     private void initRenderEngine(Class<?> clazz) {
         try {
             // 实例化 jsp 对象
-            this.curJspObj = (HttpJspBase) clazz.newInstance();
+            this.curJspObj = (HttpJspBase) ReflectUtil.newInstance(clazz);
 
             // 初始化 servletConfig
             PrintWriter printWriter = new PrintWriter(new ByteArrayOutputStream());
-            ServletContext servletContext = new JteServletContext(printWriter, URL.class.getResource("/WEB-INF/web.xml"), this.getClass().getClassLoader(), true, true);
+            ServletContext servletContext = new JteServletContext(printWriter, this.getClass().getResource("/WEB-INF/web.xml"), this.getClass().getClassLoader(), true, true);
             this.servletConfig = new JteServletConfig(clazz.getSimpleName(), servletContext, templateEngine.getConfig());
 
             // 初始化 requestFacade
-            this.requestFacade = new JteRequestFacade(new Request(new Connector()) {
-                private final org.apache.coyote.Request coyoteRequest = new org.apache.coyote.Request();
+            this.requestFacade = new JteRequestFacade(new Request(new Connector(), new org.apache.coyote.Request()) {
 
                 @Override
                 public String getMethod() {
                     return "POST";
                 }
-
-                @Override
-                public org.apache.coyote.Request getCoyoteRequest() {
-                    return coyoteRequest;
-                }
             }, templateEngine.getConfig());
 
             // 初始化 responseFacade
-            this.responseFacade = new JteResponseFacade(new Response() {
-                    private final org.apache.coyote.Response coyoteResponse = new org.apache.coyote.Response();
-
-                    @Override
-                    public org.apache.coyote.Response getCoyoteResponse() {
-                        return coyoteResponse;
-                    }
-                }, clazz, templateEngine);
+            this.responseFacade = new JteResponseFacade(new Response(new org.apache.coyote.Response()), clazz, templateEngine);
         } catch (Exception e) {
-            log.error("initRenderEngine error !");
-            throw new RuntimeException(e);
+            throw ExceptionUtil.wrap(e);
         }
-    }
-
-    public ResponseFacade getResponseFacade() {
-        return this.responseFacade;
     }
 
     public void doRenderTemplate() {
@@ -109,8 +77,7 @@ public class JstlRenderEngine {
                 this.curJspObj.destroy();
             }
         } catch (Exception e) {
-            log.error("doRenderTemplate error !");
-            throw new RuntimeException(e);
+            throw ExceptionUtil.wrap(e);
         }
     }
 }

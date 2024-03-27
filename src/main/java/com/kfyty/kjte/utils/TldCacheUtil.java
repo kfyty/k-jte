@@ -1,12 +1,13 @@
 package com.kfyty.kjte.utils;
 
+import jakarta.servlet.ServletContext;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jasper.servlet.TldScanner;
 import org.apache.tomcat.util.descriptor.tld.TaglibXml;
 import org.apache.tomcat.util.descriptor.tld.TldResourcePath;
 import org.xml.sax.SAXException;
 
-import javax.servlet.ServletContext;
 import java.io.IOException;
 import java.util.Map;
 
@@ -19,7 +20,10 @@ import java.util.Map;
  */
 @Slf4j
 public abstract class TldCacheUtil {
+    @Getter
     private static Map<String, TldResourcePath> tldResourcePathMap;
+
+    @Getter
     private static Map<TldResourcePath, TaglibXml> tldResourcePathTaglibXmlMap;
 
     public static boolean isAvailable() {
@@ -37,11 +41,4 @@ public abstract class TldCacheUtil {
         tldResourcePathTaglibXmlMap = tldScanner.getTldResourcePathTaglibXmlMap();
     }
 
-    public static Map<String, TldResourcePath> getTldResourcePathMap() {
-        return tldResourcePathMap;
-    }
-
-    public static Map<TldResourcePath, TaglibXml> getTldResourcePathTaglibXmlMap() {
-        return tldResourcePathTaglibXmlMap;
-    }
 }

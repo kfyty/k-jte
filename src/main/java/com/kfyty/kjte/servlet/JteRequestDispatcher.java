@@ -3,13 +3,12 @@ package com.kfyty.kjte.servlet;
 import com.kfyty.kjte.JstlRenderEngine;
 import com.kfyty.kjte.JstlTemplateEngine;
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import org.apache.tomcat.util.buf.MessageBytes;
 import org.apache.tomcat.util.http.Parameters;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Enumeration;
@@ -25,12 +24,12 @@ public class JteRequestDispatcher implements RequestDispatcher {
     }
 
     @Override
-    public void forward(ServletRequest request, ServletResponse response) throws ServletException, IOException {
+    public void forward(ServletRequest request, ServletResponse response) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void include(ServletRequest request, ServletResponse response) throws ServletException, IOException {
+    public void include(ServletRequest request, ServletResponse response) throws IOException {
         // 生成 include 指令配置
         String includePath = (path.startsWith(config.getTemplatePath()) ? "" : config.getTemplatePath()) + path.substring(0, path.lastIndexOf(".jsp") + 4);
         String templatePath = (path.startsWith(config.getTemplatePath()) ? "" : config.getTemplatePath()) + path.substring(0, path.lastIndexOf("/"));
@@ -51,7 +50,7 @@ public class JteRequestDispatcher implements RequestDispatcher {
     }
 
     private void resolveIncludeParams(ServletRequest request, String path, JstlTemplateEngineConfig config) {
-        if(!path.contains(".jsp?")) {
+        if (!path.contains(".jsp?")) {
             return;
         }
         String params = path.substring(path.lastIndexOf(".jsp") + 5);

@@ -1,8 +1,9 @@
 package com.kfyty.kjte.servlet;
 
+import com.kfyty.core.utils.ReflectUtil;
 import com.kfyty.kjte.JstlTemplateEngine;
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
-import com.kfyty.core.utils.ReflectUtil;
+import jakarta.servlet.ServletContext;
 import org.apache.jasper.EmbeddedServletOptions;
 import org.apache.jasper.JspCompilationContext;
 import org.apache.jasper.Options;
@@ -11,7 +12,6 @@ import org.apache.jasper.compiler.JspRuntimeContext;
 import org.apache.jasper.servlet.JspServletWrapper;
 import org.apache.tomcat.Jar;
 
-import javax.servlet.ServletContext;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -48,7 +48,7 @@ public class JteJspCompilationContext extends JspCompilationContext {
 
     @Override
     public String getServletJavaFileName() {
-        if(returnSuper()) {
+        if (returnSuper()) {
             return super.getServletJavaFileName();
         }
         JstlTemplateEngineConfig config = templateEngine.getConfig();
@@ -57,16 +57,15 @@ public class JteJspCompilationContext extends JspCompilationContext {
 
     @Override
     public String getServletClassName() {
-        String className = super.getServletClassName();
-        if(returnSuper()) {
-            return className;
+        if (returnSuper()) {
+            return super.getServletClassName();
         }
-        return className.replaceAll("_jsp$", "");
+        return super.getServletClassName().replaceAll("_jsp$", "");
     }
 
     @Override
     public Options getOptions() {
-        if(returnSuper()) {
+        if (returnSuper()) {
             return super.getOptions();
         }
         File java = new File(templateEngine.getConfig().getSavePath());
@@ -78,7 +77,7 @@ public class JteJspCompilationContext extends JspCompilationContext {
 
     @Override
     public String getServletPackageName() {
-        if(returnSuper()) {
+        if (returnSuper()) {
             return super.getServletPackageName();
         }
         String pack = "package";
@@ -89,13 +88,12 @@ public class JteJspCompilationContext extends JspCompilationContext {
     }
 
     private boolean returnSuper() {
-        return !templateEngine.getConfig().isCompiler() ||
-                templateEngine.getGenerateComplete().get(super.getServletClassName()) == null;
+        return !templateEngine.getConfig().isCompiler() || templateEngine.getGenerateComplete().get(super.getServletClassName()) == null;
     }
 
     private String mkdirIfNecessary(String packageName) {
         File dir = new File(templateEngine.getConfig().getSavePath() + packageName.replace(".", File.separator));
-        if(!dir.exists() && !dir.mkdirs()) {
+        if (!dir.exists() && !dir.mkdirs()) {
             throw new RuntimeException("create dir failed: " + dir.getAbsolutePath());
         }
         return packageName;

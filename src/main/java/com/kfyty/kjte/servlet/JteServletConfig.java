@@ -1,16 +1,15 @@
 package com.kfyty.kjte.servlet;
 
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
 public class JteServletConfig implements ServletConfig {
-    private final JstlTemplateEngineConfig config;
     private final String jspName;
     private final ServletContext servletContext;
     private final Map<String, String> params = new HashMap<>();
@@ -22,7 +21,6 @@ public class JteServletConfig implements ServletConfig {
     public JteServletConfig(String jspName, ServletContext servletContext, JstlTemplateEngineConfig config) {
         this.jspName = jspName.endsWith(".jsp") ? jspName : jspName + ".jsp";
         this.servletContext = servletContext;
-        this.config = config;
         params.put("scratchdir", config.getTempOutPutDir());
     }
 

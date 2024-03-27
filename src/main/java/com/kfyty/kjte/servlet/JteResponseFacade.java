@@ -1,8 +1,8 @@
 package com.kfyty.kjte.servlet;
 
+import com.kfyty.core.utils.ReflectUtil;
 import com.kfyty.kjte.JstlTemplateEngine;
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
-import com.kfyty.core.utils.ReflectUtil;
 import javassist.ClassPool;
 import lombok.SneakyThrows;
 import org.apache.catalina.connector.Response;
@@ -11,18 +11,18 @@ import org.apache.jasper.JspCompilationContext;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.kfyty.kjte.JstlTemplateEngine.CLASS_SUFFIX;
 import static com.kfyty.core.utils.CommonUtil.BLANK_LINE_PATTERN;
+import static com.kfyty.kjte.JstlTemplateEngine.CLASS_SUFFIX;
 
 public class JteResponseFacade extends ResponseFacade {
     private final String jspName;
@@ -39,15 +39,15 @@ public class JteResponseFacade extends ResponseFacade {
     }
 
     @Override
-    public PrintWriter getWriter() throws IOException {
-        return printWriter;
+    public PrintWriter getWriter() {
+        return this.printWriter;
     }
 
     public String getString() {
         return this.stringWriter.toString().replaceFirst(BLANK_LINE_PATTERN.pattern(), "").replaceAll(BLANK_LINE_PATTERN.pattern(), System.lineSeparator());
     }
 
-    public void doWriteOut() throws IOException {
+    public void write() throws IOException {
         String code = this.getString();
         JstlTemplateEngineConfig config = templateEngine.getConfig();
         if (config.getOut() != null) {
@@ -56,7 +56,7 @@ public class JteResponseFacade extends ResponseFacade {
             return;
         }
         File file = new File(config.getSavePath(), jspName);
-        try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file))) {
+        try (BufferedOutputStream out = new BufferedOutputStream(Files.newOutputStream(file.toPath()))) {
             out.write(code.getBytes(StandardCharsets.UTF_8));
             out.flush();
         }
@@ -74,7 +74,7 @@ public class JteResponseFacade extends ResponseFacade {
         templateEngine.getGenerateComplete().put(compilationContext.getServletClassName(), code);
         this.doInvokeGenerateClass(compilationContext);
         String classPath = config.getSavePath() + compilationContext.getServletPackageName().replace(".", File.separator) + File.separator + compilationContext.getServletClassName() + CLASS_SUFFIX;
-        Class<?> clazz = classPool.makeClass(new FileInputStream(classPath)).toClass();
+        Class<?> clazz = classPool.makeClass(Files.newInputStream(Paths.get(classPath))).toClass();
         if (templateEngine.getCompileClass().containsKey(clazz.getName())) {
             throw new IllegalArgumentException("The class already exists !");
         }
