@@ -1,8 +1,8 @@
 package com.kfyty.kjte.servlet;
 
-import com.kfyty.core.utils.ReflectUtil;
 import com.kfyty.kjte.JstlTemplateEngine;
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
+import com.kfyty.loveqq.framework.core.utils.ReflectUtil;
 import jakarta.servlet.ServletContext;
 import org.apache.jasper.EmbeddedServletOptions;
 import org.apache.jasper.JspCompilationContext;

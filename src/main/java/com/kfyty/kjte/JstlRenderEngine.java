@@ -1,11 +1,11 @@
 package com.kfyty.kjte;
 
-import com.kfyty.core.utils.ExceptionUtil;
-import com.kfyty.core.utils.ReflectUtil;
 import com.kfyty.kjte.servlet.JteRequestFacade;
 import com.kfyty.kjte.servlet.JteResponseFacade;
 import com.kfyty.kjte.servlet.JteServletConfig;
 import com.kfyty.kjte.servlet.JteServletContext;
+import com.kfyty.loveqq.framework.core.utils.ExceptionUtil;
+import com.kfyty.loveqq.framework.core.utils.ReflectUtil;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;
 import lombok.Getter;

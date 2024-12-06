@@ -6,11 +6,10 @@
 
     <groupId>com.kfyty</groupId>
     <artifactId>k-jte</artifactId>
-    <version>1.0-SNAPSHOT</version>
-
+    <version>1.0.0</version>
     <packaging>jar</packaging>
-
     <name>k-jte</name>
+    <url>https://github.com/kfyty/k-jte</url>
     <description>jsp 模板引擎。无需启动 tomcat，直接根据 jsp 源文件渲染得到 html 页面；如果 jsp 模板生成的是 java 代码，则支持对 java 代码进行二次编译。</description>
 
     <developers>
@@ -22,15 +21,26 @@
         </developer>
     </developers>
 
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/kfyty/k-jte</url>
+        <connection>https://github.com/kfyty/k-jte.git</connection>
+    </scm>
+
     <properties>
         <maven.compiler.version>3.8.0</maven.compiler.version>
         <maven.source.version>3.1.0</maven.source.version>
 
-        <kfyty.utils.version>1.0-SNAPSHOT</kfyty.utils.version>
-
-        <tomcat.version>11.0.0-M15</tomcat.version>
+        <tomcat.version>11.0.3</tomcat.version>
         <jsp.jstl.version>2.0.0</jsp.jstl.version>
         <javassist.version>3.25.0-GA</javassist.version>
+        <loveqq.framework.version>1.1.6-M1</loveqq.framework.version>
 
         <slf4j.version>1.7.25</slf4j.version>
         <slf4j.log4j12.version>1.7.12</slf4j.log4j12.version>
@@ -41,8 +51,8 @@
     <dependencies>
         <dependency>
             <groupId>com.kfyty</groupId>
-            <artifactId>kfyty-core</artifactId>
-            <version>${kfyty.utils.version}</version>
+            <artifactId>loveqq-core</artifactId>
+            <version>${loveqq.framework.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -113,17 +123,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.version}</version>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                    <source>8</source>
-                    <target>8</target>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>${maven.source.version}</version>
                 <executions>
@@ -135,6 +134,101 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.version}</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <argLine>
+                        --add-opens=java.base/java.lang=ALL-UNNAMED
+                        --add-opens=java.base/java.io=ALL-UNNAMED
+                        --add-opens=java.base/java.nio=ALL-UNNAMED
+                        --add-opens=java.base/java.util=ALL-UNNAMED
+                        --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+                        --add-opens=java.base/sun.reflect.annotation=ALL-UNNAMED
+                        --add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED
+                        --add-opens=java.rmi/java.rmi=ALL-UNNAMED
+                        --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+                        --add-opens=java.rmi/sun.rmi.transport.tcp=ALL-UNNAMED
+                    </argLine>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <additionalJOption>-Xdoclint:none</additionalJOption>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.2.2</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.7.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>kfyty</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                    <waitUntil>published</waitUntil>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>kfyty</id>
+            <name>snapshot</name>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+
+        <repository>
+            <id>kfyty</id>
+            <name>releases</name>
+            <url>https://s01.oss.sonatype.org/content/repositories/releases/</url>
+        </repository>
+    </distributionManagement>
 </project>

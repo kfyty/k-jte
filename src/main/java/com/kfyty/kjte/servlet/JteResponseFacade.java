@@ -1,8 +1,8 @@
 package com.kfyty.kjte.servlet;
 
-import com.kfyty.core.utils.ReflectUtil;
 import com.kfyty.kjte.JstlTemplateEngine;
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
+import com.kfyty.loveqq.framework.core.utils.ReflectUtil;
 import javassist.ClassPool;
 import lombok.SneakyThrows;
 import org.apache.catalina.connector.Response;
@@ -21,8 +21,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.kfyty.core.utils.CommonUtil.BLANK_LINE_PATTERN;
 import static com.kfyty.kjte.JstlTemplateEngine.CLASS_SUFFIX;
+import static com.kfyty.loveqq.framework.core.utils.CommonUtil.BLANK_LINE_PATTERN;
 
 public class JteResponseFacade extends ResponseFacade {
     private final String jspName;
