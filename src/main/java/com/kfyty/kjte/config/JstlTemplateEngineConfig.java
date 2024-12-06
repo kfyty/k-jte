@@ -1,6 +1,8 @@
 package com.kfyty.kjte.config;
 
 import com.kfyty.kjte.servlet.JteResponseFacade;
+import com.kfyty.loveqq.framework.core.utils.CommonUtil;
+import com.kfyty.loveqq.framework.core.utils.IOUtil;
 import jakarta.servlet.jsp.JspFactory;
 import jakarta.servlet.jsp.PageContext;
 import lombok.Data;
@@ -16,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.kfyty.core.utils.CommonUtil.removePrefix;
-import static com.kfyty.core.utils.IOUtil.scanFiles;
 import static com.kfyty.kjte.JstlTemplateEngine.DEFAULT_OUT_PUT_TEMP_DIR;
 
 @Data
@@ -151,7 +151,7 @@ public class JstlTemplateEngineConfig {
                 path += "/*.jsp";
             }
         }
-        Set<URL> urls = scanFiles(removePrefix("/", path), this.getClass().getClassLoader());
+        Set<URL> urls = IOUtil.scanFiles(CommonUtil.removePrefix("/", path), this.getClass().getClassLoader());
         for (URL url : urls) {
             jspFiles.add(new File(url.getFile()));
         }

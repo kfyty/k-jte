@@ -1,7 +1,7 @@
 package com.kfyty.kjte;
 
-import com.kfyty.core.utils.ReflectUtil;
 import com.kfyty.kjte.config.JstlTemplateEngineConfig;
+import com.kfyty.loveqq.framework.core.utils.ReflectUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
