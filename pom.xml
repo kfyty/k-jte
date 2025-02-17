@@ -26,10 +26,10 @@
         <maven.compiler.version>3.8.0</maven.compiler.version>
         <maven.source.version>3.1.0</maven.source.version>
 
-        <tomcat.version>11.0.0-M15</tomcat.version>
+        <tomcat.version>11.0.3</tomcat.version>
         <jsp.jstl.version>2.0.0</jsp.jstl.version>
         <javassist.version>3.25.0-GA</javassist.version>
-        <loveqq.framework.version>1.0.8</loveqq.framework.version>
+        <loveqq.framework.version>1.0.9</loveqq.framework.version>
 
         <slf4j.version>1.7.25</slf4j.version>
         <slf4j.log4j12.version>1.7.12</slf4j.log4j12.version>
@@ -116,8 +116,8 @@
                 <version>${maven.compiler.version}</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>17</source>
+                    <target>17</target>
                 </configuration>
             </plugin>
 
@@ -133,6 +133,26 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.3.1</version>
+                <configuration>
+                    <argLine>
+                        --add-opens=java.base/java.lang=ALL-UNNAMED
+                        --add-opens=java.base/java.io=ALL-UNNAMED
+                        --add-opens=java.base/java.nio=ALL-UNNAMED
+                        --add-opens=java.base/java.util=ALL-UNNAMED
+                        --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+                        --add-opens=java.base/sun.reflect.annotation=ALL-UNNAMED
+                        --add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED
+                        --add-opens=java.rmi/java.rmi=ALL-UNNAMED
+                        --add-opens=java.rmi/sun.rmi.transport=ALL-UNNAMED
+                        --add-opens=java.rmi/sun.rmi.transport.tcp=ALL-UNNAMED
+                    </argLine>
+                </configuration>
             </plugin>
         </plugins>
     </build>
